@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Popular Movies</string>
+    <!-- Used to open Settings Menu from MainDiscover and DetailActivity -->
+    <string name="action_popular">Most Popular</string>
+    <string name="action_toprated">Top Rated</string>
+    <string name="action_favorite">My Favorite</string>
+    <string name="detail_movie">Movie Details</string>
+    <string name="by_10">/10</string>
+    <string name="mark_as_favorite">MARK AS \nFAVORITE</string>
+    <string name="my_favorite">MY \nFAVORITE</string>
+    <string name="release_date_desc"> Release date</string>
+    <string name="average_rating_desc">Average Rating</string>
+    <string name="trailer_heading">Trailers:</string>
+    <string name="review_heading">Reviews :</string>
+    <string name="trailer">Trailer %s</string>
+
+</resources>
