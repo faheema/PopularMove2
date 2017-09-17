@@ -19,7 +19,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.activity.DetailActivity" />
+        <activity android:name=".ui.activity.DetailActivity"
+            android:launchMode= "singleInstance"/>
+        <provider
+            android:name="com.ap.fahm.popular_movie_app.data.provider.MoviesContentProvider"
+            android:authorities="com.ap.fahm.popular_movie_app"
+            android:exported="false"
+            android:label="@string/app_name"
+           />
     </application>
 
 </manifest>

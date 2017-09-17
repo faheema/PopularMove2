@@ -10,7 +10,7 @@ import android.provider.BaseColumns;
 public final class MoviesContract {
 
     public static final String QUERY_PARAMETER_DISTINCT = "distinct";
-    public static final String CONTENT_AUTHORITY = "com.ap.popular_movie_app.data";
+    public static final String CONTENT_AUTHORITY = "com.ap.fahm.popular_movie_app";
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
     private static final String PATH_MOVIES = "movies";
 
@@ -38,12 +38,7 @@ public final class MoviesContract {
 
     public static final class Movies implements MoviesColumns,BaseColumns {
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_MOVIES).build();
-        public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.popularmovies.movie";
-        public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.popularmovies.movie";
-        /**
-         * Default "ORDER BY" clause.
-         */
-        public static final String DEFAULT_SORT = BaseColumns._ID + " DESC";
+
 
         /**
          * Build {@link Uri} for requested {@link #MOVIE_ID}.
@@ -51,12 +46,6 @@ public final class MoviesContract {
         public static Uri buildMovieUri(String movieId) {
             return CONTENT_URI.buildUpon().appendPath(movieId).build();}
 
-        /**
-         * Read {@link #MOVIE_ID} from {@link Movies} {@link Uri}.
-         */
-        public static String getMovieId(Uri uri) {
-            return uri.getPathSegments().get(1);
-        }
     }
 
     public interface Tables {

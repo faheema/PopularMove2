@@ -3,7 +3,6 @@ package com.ap.fahm.popular_movie_app.ui.activity;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
@@ -14,8 +13,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.android.volley.toolbox.ImageLoader;
@@ -43,14 +42,16 @@ import org.json.JSONObject;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 
-public class DetailActivity extends AppCompatActivity implements IPopularMovieAsuncCallback, IMovieTrailerAsyncCallback, OnTrailersItemClickListner {
+public class DetailActivity extends AppCompatActivity implements
+        IPopularMovieAsuncCallback, IMovieTrailerAsyncCallback, OnTrailersItemClickListner {
     TextView mTitle, mReleaseDate, mVoteAvg, mOverView;
     ToggleButton mBtnMarkFav;
     NetworkImageView mPoster;
     RecyclerView mRVMovieTrailer, mRVMovieReview;
     Movie mMovie;
+    ArrayList<Video> videoArrayList;
+    ArrayList<Review> reviewArrayList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,7 +123,7 @@ public class DetailActivity extends AppCompatActivity implements IPopularMovieAs
     public void movieTrailerTskFinish(String results) {
         if (results != null && !results.equals("")) {
             TrailersAdapter trailersAdapter;
-            ArrayList<Video> videoArrayList = parseTrailerSearchData(results);
+            videoArrayList = parseTrailerSearchData(results);
             trailersAdapter = new TrailersAdapter(videoArrayList, this);
 
             RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
@@ -136,7 +137,7 @@ public class DetailActivity extends AppCompatActivity implements IPopularMovieAs
     public void movieTaskFinish(String results) {
         if (results != null && !results.equals("")) {
             ReviewsAdapter reviewsAdapter;
-            ArrayList<Review> reviewArrayList = parseReviewSearchData(results);
+            reviewArrayList = parseReviewSearchData(results);
             reviewsAdapter = new ReviewsAdapter(reviewArrayList);
             RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
             mRVMovieReview.setLayoutManager(mLayoutManager);
@@ -241,7 +242,15 @@ public class DetailActivity extends AppCompatActivity implements IPopularMovieAs
             int video_val= (mMovie.getVideo()) ? 1:0;
             cvMovie.put(MoviesContract.MoviesColumns.MOVIE_VIDEO,""+video_val);
 
-            MoviesDBHelper dbHelper = new MoviesDBHelper(this);
+            Uri uri = DetailActivity.this.getContentResolver().insert(MoviesContract.Movies.CONTENT_URI, cvMovie);
+
+            // COMPLETED (8) Display the URI that's returned with a Toast
+            // [Hint] Don't forget to call finish() to return to MainActivity after this insert is complete
+            if(uri != null) {
+                Log.e("FAHEEM", "Favorits successfully added! ");
+            }
+
+           /* MoviesDBHelper dbHelper = new MoviesDBHelper(this);
             SQLiteDatabase db;
             db = dbHelper.getWritableDatabase();
             db.beginTransaction();
@@ -257,7 +266,7 @@ public class DetailActivity extends AppCompatActivity implements IPopularMovieAs
                 db.endTransaction();
                 dbHelper.close();
                 db.close();
-            }
+            }*/
         }
         else
         {
@@ -275,15 +284,24 @@ public class DetailActivity extends AppCompatActivity implements IPopularMovieAs
         Cursor cursor = null;
         String sql ="SELECT * FROM "+MoviesContract.Tables.MOVIES+" WHERE "
                 +MoviesContract.MoviesColumns.MOVIE_ID+"="+movie_id;
-        cursor= mDb.rawQuery(sql,null);
+         // MoviesContract.MoviesColumns.MOVIE_ID+"="+movie_id
+        // cursor= mDb.rawQuery(sql,null);
+        cursor = DetailActivity.this.getContentResolver().query(MoviesContract.Movies.CONTENT_URI,
+                null,
+                MoviesContract.MoviesColumns.MOVIE_ID+"="+movie_id,
+                null,
+                null);
+
 //+" AND "+MoviesContract.MoviesColumns.MOVIE_FAVORED+"=1"
       //  Log.d("FAHEEM","Cursor Count : " + cursor.getCount());
+        boolean exists = false;
+        if (cursor == null) {
+            Log.e("FAHEEM", "Cursor Count : " + "ERROR");
+        } else exists = (cursor.getCount() > 0);
 
-        boolean exists = (cursor.getCount() > 0);
-        cursor.close();
-        dbHelper.close();
-        mDb.close();
         return exists;
+
+
     }
 
 }

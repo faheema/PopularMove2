@@ -58,8 +58,10 @@ public class MainMovieActivity extends AppCompatActivity implements IPopularMovi
             getPopularMovies();
         }else {
             movieList = savedInstanceState.getParcelableArrayList("movie_list");
+            int index = savedInstanceState.getInt("scroll_pos",0);
             mMovieAdapter = new MoviesAdapter(MainMovieActivity.this, movieList);
             mGridView.setAdapter(mMovieAdapter);
+            mGridView.setSelection(index);
         }
 
 
@@ -145,7 +147,9 @@ public class MainMovieActivity extends AppCompatActivity implements IPopularMovi
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+        int index = mGridView.getFirstVisiblePosition();
         outState.putParcelableArrayList("movie_list", movieList);
+        outState.putInt("scroll_pos",index);
         super.onSaveInstanceState(outState);
     }
 

@@ -12,7 +12,7 @@ import com.ap.fahm.popular_movie_app.data.db.MoviesContract.MoviesColumns;
  */
 
 public class MoviesDBHelper extends SQLiteOpenHelper {
-        private static final String DB_NAME = "fav_movies.db";
+        private static final String DB_NAME = "favmovies.db";
         private static final int DB_VERSION = 1;
 
         private final Context mContext;

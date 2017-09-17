@@ -13,5 +13,9 @@
     <string name="trailer_heading">Trailers:</string>
     <string name="review_heading">Reviews :</string>
     <string name="trailer">Trailer %s</string>
+    <string name="content_authority">.data.provider</string>
+
+
+
 
 </resources>
