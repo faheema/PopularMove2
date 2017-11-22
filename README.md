@@ -1,7 +1,6 @@
 # PopularMove2
-Project 1 and 2 of Udacity Associate Android Developer done and finished
-This is how it looks
-
+#### Project 1 and 2 of Udacity Associate Android Developer done and finished ,This is how it looks
+#### #no errors
 ![sc][1]
 ![sc][2]
 ![sc][3]
