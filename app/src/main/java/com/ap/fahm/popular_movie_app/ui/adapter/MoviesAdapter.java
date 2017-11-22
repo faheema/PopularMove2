@@ -1,6 +1,7 @@
 package com.ap.fahm.popular_movie_app.ui.adapter;
 
 import android.content.Context;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,7 @@ import com.android.volley.toolbox.NetworkImageView;
 import com.ap.fahm.popular_movie_app.AppController;
 import com.ap.fahm.popular_movie_app.R;
 import com.ap.fahm.popular_movie_app.data.model.Movie;
+import com.ap.fahm.popular_movie_app.utilities.NetworkUtils;
 
 import java.util.ArrayList;
 
@@ -48,7 +50,9 @@ public class MoviesAdapter extends ArrayAdapter<Movie> {
         NetworkImageView poster_img = convertView
                 .findViewById(R.id.image_movieItem);
         Movie movie = movies.get(position);
-        poster_img.setImageUrl(movie.getPosterPath(), imageLoader);
+
+
+        poster_img.setImageUrl(NetworkUtils.buildPosterUrl(movie.getPosterPath()), imageLoader);
 
         return convertView;
     }

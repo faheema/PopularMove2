@@ -3,6 +3,8 @@ package com.ap.fahm.popular_movie_app.data.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Created by Faheem on 18/08/17.
  */
@@ -19,9 +21,16 @@ public final class Review implements Parcelable {
         }
     };
 
+    @SerializedName("id")
     private String id;
+
+    @SerializedName("author")
     private String author;
+
+    @SerializedName("content")
     private String content;
+
+    @SerializedName("url")
     private String url;
 
     public Review() {

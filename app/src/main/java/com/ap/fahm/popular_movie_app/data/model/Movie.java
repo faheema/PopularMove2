@@ -7,6 +7,8 @@ package com.ap.fahm.popular_movie_app.data.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,19 +24,46 @@ public final class Movie implements Parcelable {
             return new Movie[size];
         }
     };
+    @SerializedName("id")
     long id;
+
+    @SerializedName("vote_count")
     long voteCount;
+
+    @SerializedName("video")
     boolean video = false;
+
+    @SerializedName("vote_average")
     double voteAverage;
+
+    @SerializedName("title")
     String title;
+
+    @SerializedName("popularity")
     double popularity;
+
+    @SerializedName("poster_path")
     String posterPath;
+
+    @SerializedName("original_language")
     String originalLanguage;
+
+    @SerializedName("original_title")
     String originalTitle;
+
+    @SerializedName("genre_ids")
     List<Integer> genreIds = new ArrayList<>();
+
+    @SerializedName("backdrop_path")
     String backdropPath;
+
+    @SerializedName("adult")
     boolean adult;
+
+    @SerializedName("overview")
     String overview;
+
+    @SerializedName("release_date")
     String releaseDate;
 
     public Movie() {

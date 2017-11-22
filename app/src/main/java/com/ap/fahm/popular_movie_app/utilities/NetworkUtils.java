@@ -14,18 +14,18 @@ import java.net.URL;
 public class NetworkUtils {
 
     public final static  String SELECTED_MOVIE = "SELECTED_MOVIE";
-    private final static String BASE_URL = "https://api.themoviedb.org/3";
-    private final static String MOVIE_BASE_URL = "https://api.themoviedb.org/3/movie";
-    private final static String API_KEY = "api_key";
+    public final static String BASE_URL = "https://api.themoviedb.org/3";
+    public final static String MOVIE_BASE_URL = "https://api.themoviedb.org/3/movie";
+    public final static String API_KEY = "api_key";
 
-    private final static String POPULAR_MOVIE_URL = "/popular";
-    private final static String TOPRATED_MOVIE_URL = "/top_rated";
+    public final static String POPULAR_MOVIE_URL = "/popular";
+    public final static String TOPRATED_MOVIE_URL = "/top_rated";
     /**  /movie/{id}/videos **/
-    private final static String MOVIE_TRAILER_URL = "/videos";
+    public final static String MOVIE_TRAILER_URL = "/videos";
     /**** /movie/{id}/reviews *****/
-    private final static String MOVIE_REVIEWS_URL = "/reviews";
+    public final static String MOVIE_REVIEWS_URL = "/reviews";
 
-    private final static String IMAGE_POSTER_BASE_URL = "http://image.tmdb.org/t/p";
+    public final static String IMAGE_POSTER_BASE_URL = "http://image.tmdb.org/t/p";
 
     /**
      * Builds the URL to optain poplar movies.
@@ -96,23 +96,17 @@ public class NetworkUtils {
         return url;
     }
 
-    public static String buildPosterUrl(String imagePath, int width) {
-        String widthPath;
+    public static String buildPosterUrl(String imagePath) {
 
-        if (width <= 92)
-            widthPath = "/w92";
-        else if (width <= 154)
-            widthPath = "/w154";
-        else if (width <= 185)
-            widthPath = "/w185";
-        else if (width <= 342)
-            widthPath = "/w342";
-        else if (width <= 500)
-            widthPath = "/w500";
-        else
-            widthPath = "/w780";
-
-        //Timber.v("buildPosterUrl: widthPath=" + widthPath);
-        return IMAGE_POSTER_BASE_URL + widthPath + imagePath;
+        Uri.Builder posterbuiltUri = new Uri.Builder();
+        String strPathTemp = imagePath;
+        posterbuiltUri.scheme("http")
+                .authority("image.tmdb.org")
+                .appendPath("t")
+                .appendPath("p")
+                .appendPath("w185")
+                .appendPath(strPathTemp.substring(1));
+        String posterUrl = posterbuiltUri.toString();
+        return posterUrl;
     }
 }

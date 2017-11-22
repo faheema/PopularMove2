@@ -3,6 +3,8 @@ package com.ap.fahm.popular_movie_app.data.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 
 /**
@@ -22,13 +24,28 @@ import java.util.List;
                 return new Video[size];
             }
         };
+
+        @SerializedName("id")
         private String id;
+
+        @SerializedName("iso_639_1")
         private String iso;
+
+        @SerializedName("key")
         private String key;
+
+        @SerializedName("name")
         private String name;
+
+        @SerializedName("site")
         private String site;
+
+        @SerializedName("size")
         private int size;
+
+        @SerializedName("type")
         private String type;
+
         public Video() {
         }
 

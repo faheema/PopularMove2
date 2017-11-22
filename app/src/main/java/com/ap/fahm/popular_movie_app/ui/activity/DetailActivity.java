@@ -14,22 +14,28 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.NetworkImageView;
 import com.ap.fahm.popular_movie_app.AppController;
+import com.ap.fahm.popular_movie_app.BuildConfig;
 import com.ap.fahm.popular_movie_app.R;
 import com.ap.fahm.popular_movie_app.data.db.MoviesContract;
 import com.ap.fahm.popular_movie_app.data.db.MoviesDBHelper;
 import com.ap.fahm.popular_movie_app.data.model.Movie;
 import com.ap.fahm.popular_movie_app.data.model.Review;
 import com.ap.fahm.popular_movie_app.data.model.Video;
-import com.ap.fahm.popular_movie_app.data.sync.IMovieTrailerAsyncCallback;
-import com.ap.fahm.popular_movie_app.data.sync.IPopularMovieAsuncCallback;
-import com.ap.fahm.popular_movie_app.data.sync.MovieTrailerAsyncTask;
-import com.ap.fahm.popular_movie_app.data.sync.PopularMoviesQueryTask;
+import com.ap.fahm.popular_movie_app.data.sync_httpurlconn.IMovieTrailerAsyncCallback;
+import com.ap.fahm.popular_movie_app.data.sync_httpurlconn.IPopularMovieAsuncCallback;
+import com.ap.fahm.popular_movie_app.data.sync_httpurlconn.MovieTrailerAsyncTask;
+import com.ap.fahm.popular_movie_app.data.sync_httpurlconn.PopularMoviesQueryTask;
+import com.ap.fahm.popular_movie_app.data.sync_retrofit.ApiClient;
+import com.ap.fahm.popular_movie_app.data.sync_retrofit.ApiInterface;
+import com.ap.fahm.popular_movie_app.data.sync_retrofit.MovieReviewsResponse;
+import com.ap.fahm.popular_movie_app.data.sync_retrofit.MovieVideosResponse;
+import com.ap.fahm.popular_movie_app.data.sync_retrofit.MoviesResponse;
+import com.ap.fahm.popular_movie_app.ui.adapter.MoviesAdapter;
 import com.ap.fahm.popular_movie_app.ui.adapter.ReviewsAdapter;
 import com.ap.fahm.popular_movie_app.ui.adapter.TrailersAdapter;
 import com.ap.fahm.popular_movie_app.ui.listner.OnTrailersItemClickListner;
@@ -43,8 +49,11 @@ import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
-public class DetailActivity extends AppCompatActivity implements
-        IPopularMovieAsuncCallback, IMovieTrailerAsyncCallback, OnTrailersItemClickListner {
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+public class DetailActivity extends AppCompatActivity implements OnTrailersItemClickListner{
     TextView mTitle, mReleaseDate, mVoteAvg, mOverView;
     ToggleButton mBtnMarkFav;
     NetworkImageView mPoster;
@@ -77,21 +86,19 @@ public class DetailActivity extends AppCompatActivity implements
             mOverView.setText(mMovie.getOverview());
 
             ImageLoader imageLoader = AppController.getInstance().getImageLoader();
-            mPoster.setImageUrl(mMovie.getPosterPath(), imageLoader);
+            mPoster.setImageUrl(NetworkUtils.buildPosterUrl(mMovie.getPosterPath()), imageLoader);
 
             long movie_id = mMovie.getId();
 
-            URL trailerURL = NetworkUtils.getMovieTrailersURL(movie_id);
-            new MovieTrailerAsyncTask(this).execute(trailerURL);
-
-            URL reviewURL = NetworkUtils.getMovieReviewsURL(movie_id);
-            new PopularMoviesQueryTask(this).execute(reviewURL);
-            Log.d("REVIEW URL", " " + reviewURL);
-
+            loadTrailers();
+            loadReviews();
             if (isFavMovieExists(movie_id+""))
             {
                 mBtnMarkFav.setChecked(false);
-            }else {mBtnMarkFav.setChecked(true);}
+
+            }else {
+                mBtnMarkFav.setChecked(true);
+            }
 
             mBtnMarkFav.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -102,11 +109,6 @@ public class DetailActivity extends AppCompatActivity implements
         }
 
     }
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putParcelable("movie", mMovie);
-        super.onSaveInstanceState(outState);
-    }
     private void findUIs() {
         mTitle = (TextView) findViewById(R.id.dmovie_title);
         mReleaseDate = (TextView) findViewById(R.id.dmovie_release_date);
@@ -116,9 +118,172 @@ public class DetailActivity extends AppCompatActivity implements
         mRVMovieTrailer = (RecyclerView) findViewById(R.id.rv_movie_trailers);
         mRVMovieReview = (RecyclerView) findViewById(R.id.rv_movie_reviews);
         mBtnMarkFav = (ToggleButton) findViewById(R.id.btn_mark_fav);
+    }
+    private void loadTrailers()
+    {
+        ApiInterface apiService =
+                ApiClient.getClient().create(ApiInterface.class);
+
+        Call<MovieVideosResponse> call = apiService.getMovieVideo((int)mMovie.getId(),BuildConfig.THE_MOVIE_DB_API_TOKEN);
+        call.enqueue(new Callback<MovieVideosResponse>() {
+            @Override
+            public void onResponse(Call<MovieVideosResponse> call, Response<MovieVideosResponse> response) {
+                try {
+
+                    if (response.isSuccessful()) {
+                        videoArrayList = (ArrayList<Video>) response.body().getResults();
+                        TrailersAdapter trailersAdapter;
+
+                        trailersAdapter = new TrailersAdapter(videoArrayList, DetailActivity.this);
+
+                        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+                        mRVMovieTrailer.setLayoutManager(mLayoutManager);
+                        mRVMovieTrailer.setAdapter(trailersAdapter);
+                    }
+                }
+                catch (NullPointerException e)
+                {e.printStackTrace();}
+            }
+
+            @Override
+            public void onFailure(Call<MovieVideosResponse> call, Throwable t) {
+                // Log error here since request failed
+                Log.e("FAHEEM", t.toString());
+            }
+        });
+    }
+    private void loadReviews()
+    {
+
+        ApiInterface apiService =
+                ApiClient.getClient().create(ApiInterface.class);
+
+        Call<MovieReviewsResponse> call = apiService.getMovieReviews((int)mMovie.getId(),BuildConfig.THE_MOVIE_DB_API_TOKEN);
+        call.enqueue(new Callback<MovieReviewsResponse>() {
+            @Override
+            public void onResponse(Call<MovieReviewsResponse> call, Response<MovieReviewsResponse> response) {
+                try {
+                    if (response.isSuccessful()) {
+
+                    reviewArrayList = (ArrayList<Review>) response.body().getResults();
+                    ReviewsAdapter reviewsAdapter;
+
+                    reviewsAdapter = new ReviewsAdapter(reviewArrayList);
+
+                    RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+                    mRVMovieReview.setLayoutManager(mLayoutManager);
+                    mRVMovieReview.setAdapter(reviewsAdapter);
+
+                    DividerItemDecoration divider = new DividerItemDecoration(mRVMovieReview.getContext(), DividerItemDecoration.VERTICAL);
+                    divider.setDrawable(ContextCompat.getDrawable(getBaseContext(), R.drawable.line_divider));
+                    mRVMovieReview.addItemDecoration(divider);
+                    }
+                }
+                catch (NullPointerException e)
+                {e.printStackTrace();}
+
+            }
+            @Override
+            public void onFailure(Call<MovieReviewsResponse> call, Throwable t) {
+                // Log error here since request failed
+                Log.e("FAHEEM", t.toString());
+            }
+        });
 
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putParcelable("movie", mMovie);
+        super.onSaveInstanceState(outState);
+    }
+
+    public void playVideo(Video video) {
+        if (video.getSite().equals(Video.SITE_YOUTUBE))
+            this.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + video.getKey())));
+        else
+            Log.d("ERROR", "Unsupported video format");
+    }
+
+
+    @Override
+    public void onItemClick(Video item) {
+        playVideo(item);
+
+    }
+
+    private void addFavMovieInDB()
+    {
+        String movie_id= mMovie.getId()+"";
+
+        boolean deleteStatus=isFavMovieExists(movie_id);
+        if (!deleteStatus)
+        {
+            ContentValues cvMovie = new ContentValues();
+
+            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_VOTE_COUNT,""+mMovie.getVoteCount());
+            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_RELEASE_DATE,""+mMovie.getReleaseDate());
+            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_VOTE_AVERAGE,""+mMovie.getVoteAverage());
+            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_OVERVIEW,""+mMovie.getOverview());
+            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_ID,""+mMovie.getId());
+            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_BACKDROP_PATH,""+mMovie.getBackdropPath());
+            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_POPULARITY,""+mMovie.getPopularity());
+            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_POSTER_PATH,""+mMovie.getPosterPath());
+            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_TITLE,""+mMovie.getTitle());
+
+            int video_val= (mMovie.getVideo()) ? 1:0;
+            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_VIDEO,""+video_val);
+
+            Uri uri = DetailActivity.this.getContentResolver().insert(MoviesContract.Movies.CONTENT_URI, cvMovie);
+
+            // COMPLETED (8) Display the URI that's returned with a Toast
+            // [Hint] Don't forget to call finish() to return to MainActivity after this insert is complete
+            if(uri != null) {
+                Log.e("FAHEEM", "Favorits successfully added! ");
+            }
+        }
+        else
+        {
+           // Log.d("FAHEEM"," ALREADY FAVORATE");
+        }
+    }
+    private boolean isFavMovieExists(String movie_id)
+    {
+        MoviesDBHelper dbHelper = new MoviesDBHelper(this);
+        SQLiteDatabase mDb;
+        mDb = dbHelper.getReadableDatabase();
+        Cursor cursor = null;
+        String sql ="SELECT * FROM "+MoviesContract.Tables.MOVIES+" WHERE "
+                +MoviesContract.MoviesColumns.MOVIE_ID+"="+movie_id;
+         // MoviesContract.MoviesColumns.MOVIE_ID+"="+movie_id
+        // cursor= mDb.rawQuery(sql,null);
+        cursor = DetailActivity.this.getContentResolver().query(MoviesContract.Movies.CONTENT_URI,
+                null,
+                MoviesContract.MoviesColumns.MOVIE_ID+"="+movie_id,
+                null,
+                null);
+        boolean exists = false;
+        if (cursor == null) {
+            Log.e("FAHEEM", "Cursor Count : " + "ERROR");
+        } else exists = (cursor.getCount() > 0);
+
+        return exists;
+    }
+
+
+    /*
+    *
+    *
+    * private void loadTrailerRevies()
+    {
+        long movie_id = mMovie.getId();
+        URL trailerURL = NetworkUtils.getMovieTrailersURL(movie_id);
+        new MovieTrailerAsyncTask(this).execute(trailerURL);
+
+        URL reviewURL = NetworkUtils.getMovieReviewsURL(movie_id);
+        new PopularMoviesQueryTask(this).execute(reviewURL);
+        Log.d("REVIEW URL", " " + reviewURL);
+    }
     @Override
     public void movieTrailerTskFinish(String results) {
         if (results != null && !results.equals("")) {
@@ -139,6 +304,7 @@ public class DetailActivity extends AppCompatActivity implements
             ReviewsAdapter reviewsAdapter;
             reviewArrayList = parseReviewSearchData(results);
             reviewsAdapter = new ReviewsAdapter(reviewArrayList);
+
             RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
             mRVMovieReview.setLayoutManager(mLayoutManager);
             mRVMovieReview.setAdapter(reviewsAdapter);
@@ -204,104 +370,5 @@ public class DetailActivity extends AppCompatActivity implements
         return reviewArrayList;
     }
 
-    public void playVideo(Video video) {
-        if (video.getSite().equals(Video.SITE_YOUTUBE))
-            this.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + video.getKey())));
-        else
-            Log.d("ERROR", "Unsupported video format");
-    }
-
-
-    @Override
-    public void onItemClick(Video item) {
-        playVideo(item);
-
-    }
-
-    private void addFavMovieInDB()
-    {
-
-        String movie_id= mMovie.getId()+"";
-
-
-        boolean deleteStatus=isFavMovieExists(movie_id);
-        if (!deleteStatus)
-        {
-            ContentValues cvMovie = new ContentValues();
-
-            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_VOTE_COUNT,""+mMovie.getVoteCount());
-            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_RELEASE_DATE,""+mMovie.getReleaseDate());
-            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_VOTE_AVERAGE,""+mMovie.getVoteAverage());
-            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_OVERVIEW,""+mMovie.getOverview());
-            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_ID,""+mMovie.getId());
-            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_BACKDROP_PATH,""+mMovie.getBackdropPath());
-            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_POPULARITY,""+mMovie.getPopularity());
-            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_POSTER_PATH,""+mMovie.getPosterPath());
-            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_TITLE,""+mMovie.getTitle());
-
-            int video_val= (mMovie.getVideo()) ? 1:0;
-            cvMovie.put(MoviesContract.MoviesColumns.MOVIE_VIDEO,""+video_val);
-
-            Uri uri = DetailActivity.this.getContentResolver().insert(MoviesContract.Movies.CONTENT_URI, cvMovie);
-
-            // COMPLETED (8) Display the URI that's returned with a Toast
-            // [Hint] Don't forget to call finish() to return to MainActivity after this insert is complete
-            if(uri != null) {
-                Log.e("FAHEEM", "Favorits successfully added! ");
-            }
-
-           /* MoviesDBHelper dbHelper = new MoviesDBHelper(this);
-            SQLiteDatabase db;
-            db = dbHelper.getWritableDatabase();
-            db.beginTransaction();
-            try
-            {
-                db.insert(MoviesContract.Tables.MOVIES, null, cvMovie);
-                db.setTransactionSuccessful();
-            }
-            catch (SQLException e) {
-            }
-            finally
-            {
-                db.endTransaction();
-                dbHelper.close();
-                db.close();
-            }*/
-        }
-        else
-        {
-           // Log.d("FAHEEM"," ALREADY FAVORATE");
-        }
-
-
-
-    }
-    private boolean isFavMovieExists(String movie_id)
-    {
-        MoviesDBHelper dbHelper = new MoviesDBHelper(this);
-        SQLiteDatabase mDb;
-        mDb = dbHelper.getReadableDatabase();
-        Cursor cursor = null;
-        String sql ="SELECT * FROM "+MoviesContract.Tables.MOVIES+" WHERE "
-                +MoviesContract.MoviesColumns.MOVIE_ID+"="+movie_id;
-         // MoviesContract.MoviesColumns.MOVIE_ID+"="+movie_id
-        // cursor= mDb.rawQuery(sql,null);
-        cursor = DetailActivity.this.getContentResolver().query(MoviesContract.Movies.CONTENT_URI,
-                null,
-                MoviesContract.MoviesColumns.MOVIE_ID+"="+movie_id,
-                null,
-                null);
-
-//+" AND "+MoviesContract.MoviesColumns.MOVIE_FAVORED+"=1"
-      //  Log.d("FAHEEM","Cursor Count : " + cursor.getCount());
-        boolean exists = false;
-        if (cursor == null) {
-            Log.e("FAHEEM", "Cursor Count : " + "ERROR");
-        } else exists = (cursor.getCount() > 0);
-
-        return exists;
-
-
-    }
-
+    * */
 }

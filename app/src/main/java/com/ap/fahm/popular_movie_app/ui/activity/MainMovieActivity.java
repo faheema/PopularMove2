@@ -1,11 +1,8 @@
 package com.ap.fahm.popular_movie_app.ui.activity;
 
-import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -16,24 +13,23 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
 
+import com.ap.fahm.popular_movie_app.BuildConfig;
 import com.ap.fahm.popular_movie_app.R;
 import com.ap.fahm.popular_movie_app.data.db.MoviesContract;
 import com.ap.fahm.popular_movie_app.data.db.MoviesDBHelper;
 import com.ap.fahm.popular_movie_app.data.model.Movie;
-import com.ap.fahm.popular_movie_app.data.sync.IPopularMovieAsuncCallback;
-import com.ap.fahm.popular_movie_app.data.sync.PopularMoviesQueryTask;
+
+import com.ap.fahm.popular_movie_app.data.sync_retrofit.ApiClient;
+import com.ap.fahm.popular_movie_app.data.sync_retrofit.ApiInterface;
+import com.ap.fahm.popular_movie_app.data.sync_retrofit.MoviesResponse;
 import com.ap.fahm.popular_movie_app.ui.adapter.MoviesAdapter;
 import com.ap.fahm.popular_movie_app.utilities.NetworkUtils;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
-import java.util.List;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-
-public class MainMovieActivity extends AppCompatActivity implements IPopularMovieAsuncCallback {
+public class MainMovieActivity extends AppCompatActivity  {
 
     private ArrayList<Movie> movieList = new ArrayList<>();
     private GridView mGridView;
@@ -73,16 +69,92 @@ public class MainMovieActivity extends AppCompatActivity implements IPopularMovi
         inflater.inflate(R.menu.moviessort, menu);
         return true;
     }
+    private void getPopularMovies()
+    {
+        ApiInterface apiService =
+                ApiClient.getClient().create(ApiInterface.class);
 
-    private void getPopularMovies() {
+        Call<MoviesResponse> call = apiService.getPopularMovies(BuildConfig.THE_MOVIE_DB_API_TOKEN);
+        call.enqueue(new Callback<MoviesResponse>() {
+            @Override
+            public void onResponse(Call<MoviesResponse> call, Response<MoviesResponse> response) {
+                try {
+                    int statusCode = response.code();
 
-        new PopularMoviesQueryTask(this).execute(NetworkUtils.getPopularMovieURL());
+                    movieList = (ArrayList<Movie>) response.body().getResults();
+                    mMovieAdapter = new MoviesAdapter(MainMovieActivity.this, movieList);
+                    mGridView.setAdapter(mMovieAdapter);
+                }
+                catch (NullPointerException e)
+                {e.printStackTrace();}
+            }
+
+            @Override
+            public void onFailure(Call<MoviesResponse> call, Throwable t) {
+                // Log error here since request failed
+                Log.e("FAHEEM", t.toString());
+            }
+        });
     }
 
     private void getTopRatedMovies() {
 
-        new PopularMoviesQueryTask(this).execute(NetworkUtils.getTopRatedMovieURL());
+        ApiInterface apiService =
+                ApiClient.getClient().create(ApiInterface.class);
+
+        Call<MoviesResponse> call = apiService.getTopRatedMovies(BuildConfig.THE_MOVIE_DB_API_TOKEN);
+        call.enqueue(new Callback<MoviesResponse>() {
+            @Override
+            public void onResponse(Call<MoviesResponse> call, Response<MoviesResponse> response) {
+                try {
+                    int statusCode = response.code();
+
+                    movieList = (ArrayList<Movie>) response.body().getResults();
+                    mMovieAdapter = new MoviesAdapter(MainMovieActivity.this, movieList);
+                    mGridView.setAdapter(mMovieAdapter);
+                }
+                catch (NullPointerException e)
+                {e.printStackTrace();}
+            }
+
+            @Override
+            public void onFailure(Call<MoviesResponse> call, Throwable t) {
+                // Log error here since request failed
+                Log.e("FAHEEM", t.toString());
+            }
+        });
     }
+
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        int index = mGridView.getFirstVisiblePosition();
+        outState.putParcelableArrayList("movie_list", movieList);
+        outState.putInt("scroll_pos",index);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_popular) {
+            getPopularMovies();
+
+            return true;
+        }
+        if (id == R.id.action_toprated) {
+            getTopRatedMovies();
+            return true;
+        }
+        if (id == R.id.action_favorite) {
+            getFAVMovies();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
     private void getFAVMovies() {
 
         MoviesDBHelper dbHelper = new MoviesDBHelper(this);
@@ -133,6 +205,21 @@ public class MainMovieActivity extends AppCompatActivity implements IPopularMovi
         mGridView.setAdapter(mMovieAdapter);
     }
 
+   /*
+
+    //// implements IPopularMovieAsuncCallback
+
+    private void getPopularMovies() {
+
+        new PopularMoviesQueryTask(this).execute(NetworkUtils.getPopularMovieURL());
+    }
+
+
+    private void getTopRatedMovies() {
+
+        new PopularMoviesQueryTask(this).execute(NetworkUtils.getTopRatedMovieURL());
+    }
+
     @Override
     public void movieTaskFinish(String results) {
 
@@ -145,17 +232,10 @@ public class MainMovieActivity extends AppCompatActivity implements IPopularMovi
         }
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        int index = mGridView.getFirstVisiblePosition();
-        outState.putParcelableArrayList("movie_list", movieList);
-        outState.putInt("scroll_pos",index);
-        super.onSaveInstanceState(outState);
-    }
 
     private ArrayList<Movie> searchResultsToMovieList(String searchResults) {
         ArrayList<Movie> moviesList = new ArrayList<>();
-      //  List<ContentValues> moviesDBlist = new ArrayList<ContentValues>();
+        //  List<ContentValues> moviesDBlist = new ArrayList<ContentValues>();
 
         try {
             JSONObject obj = new JSONObject(searchResults);
@@ -165,27 +245,27 @@ public class MainMovieActivity extends AppCompatActivity implements IPopularMovi
                 String strTemp = "";
                 Movie movie = new Movie();
                 JSONObject movieJsonObject = (JSONObject) jsonResultsArray.get(count);
-              //  ContentValues cvMovie = new ContentValues();
+                //  ContentValues cvMovie = new ContentValues();
 
                 movie.setVoteCount(movieJsonObject.getLong("vote_count"));
-              //  cvMovie.put(MoviesContract.MoviesColumns.MOVIE_VOTE_COUNT,movieJsonObject.getLong("vote_count"));
+                //  cvMovie.put(MoviesContract.MoviesColumns.MOVIE_VOTE_COUNT,movieJsonObject.getLong("vote_count"));
 
                 movie.setId(movieJsonObject.getLong("id"));
-              //  cvMovie.put(MoviesContract.MoviesColumns.MOVIE_ID,""+movieJsonObject.getLong("id"));
+                //  cvMovie.put(MoviesContract.MoviesColumns.MOVIE_ID,""+movieJsonObject.getLong("id"));
 
                 movie.setVideo(movieJsonObject.getBoolean("video"));
-              //  int video_val= (movieJsonObject.getBoolean("video")) ? 1:0;
-              //  cvMovie.put(MoviesContract.MoviesColumns.MOVIE_VIDEO,video_val);
+                //  int video_val= (movieJsonObject.getBoolean("video")) ? 1:0;
+                //  cvMovie.put(MoviesContract.MoviesColumns.MOVIE_VIDEO,video_val);
 
 
                 movie.setVoteAverage(movieJsonObject.getDouble("vote_average"));
-              //  cvMovie.put(MoviesContract.MoviesColumns.MOVIE_VOTE_AVERAGE,""+movieJsonObject.getDouble("vote_average"));
+                //  cvMovie.put(MoviesContract.MoviesColumns.MOVIE_VOTE_AVERAGE,""+movieJsonObject.getDouble("vote_average"));
 
                 movie.setTitle(movieJsonObject.getString("title"));
-              //  cvMovie.put(MoviesContract.MoviesColumns.MOVIE_TITLE,""+movieJsonObject.getString("title"));
+                //  cvMovie.put(MoviesContract.MoviesColumns.MOVIE_TITLE,""+movieJsonObject.getString("title"));
 
                 movie.setPopularity(movieJsonObject.getDouble("popularity"));
-              //  cvMovie.put(MoviesContract.MoviesColumns.MOVIE_POPULARITY,""+movieJsonObject.getDouble("popularity"));
+                //  cvMovie.put(MoviesContract.MoviesColumns.MOVIE_POPULARITY,""+movieJsonObject.getDouble("popularity"));
 
                 Uri.Builder posterbuiltUri = new Uri.Builder();
                 strTemp = movieJsonObject.getString("poster_path");
@@ -198,7 +278,7 @@ public class MainMovieActivity extends AppCompatActivity implements IPopularMovi
                 String posterUrl = posterbuiltUri.toString();
 
                 movie.setPosterPath(posterUrl);
-              //  cvMovie.put(MoviesContract.MoviesColumns.MOVIE_POSTER_PATH,""+posterUrl);
+                //  cvMovie.put(MoviesContract.MoviesColumns.MOVIE_POSTER_PATH,""+posterUrl);
 
                 movie.setOriginalLanguage(movieJsonObject.getString("original_language"));
                 movie.setOriginalTitle(movieJsonObject.getString("original_title"));
@@ -216,37 +296,14 @@ public class MainMovieActivity extends AppCompatActivity implements IPopularMovi
                 movie.setAdult(movieJsonObject.getBoolean("adult"));
 
                 movie.setOverview(movieJsonObject.getString("overview"));
-              //  cvMovie.put(MoviesContract.MoviesColumns.MOVIE_OVERVIEW,""+movieJsonObject.getString("overview"));
+                //  cvMovie.put(MoviesContract.MoviesColumns.MOVIE_OVERVIEW,""+movieJsonObject.getString("overview"));
 
                 movie.setReleaseDate(movieJsonObject.getString("release_date"));
-              //  cvMovie.put(MoviesContract.MoviesColumns.MOVIE_RELEASE_DATE,""+movieJsonObject.getString("release_date"));
-              //  moviesDBlist.add(cvMovie);
+                //  cvMovie.put(MoviesContract.MoviesColumns.MOVIE_RELEASE_DATE,""+movieJsonObject.getString("release_date"));
+                //  moviesDBlist.add(cvMovie);
 
                 moviesList.add(movie);
             }
-
-          /*
-            MoviesDBHelper dbHelper = new MoviesDBHelper(this);
-            SQLiteDatabase db;
-            db = dbHelper.getWritableDatabase();
-            db.beginTransaction();
-            try
-            {
-                db.delete (MoviesContract.Tables.MOVIES,null,null);
-
-                for(ContentValues c:moviesDBlist){
-                    db.insert(MoviesContract.Tables.MOVIES, null, c);
-                }
-                db.setTransactionSuccessful();
-            }
-            catch (SQLException e) {
-
-            }
-            finally
-            {
-                db.endTransaction();
-            }
-            */
 
 
         } catch (JSONException e) {
@@ -254,28 +311,6 @@ public class MainMovieActivity extends AppCompatActivity implements IPopularMovi
         }
         Log.d("Debug 4", " Movies size= " + moviesList.size());
         return moviesList;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_popular) {
-            getPopularMovies();
-
-            return true;
-        }
-        if (id == R.id.action_toprated) {
-            getTopRatedMovies();
-            return true;
-        }
-        if (id == R.id.action_favorite) {
-            getFAVMovies();
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
+    }*/
 
 }

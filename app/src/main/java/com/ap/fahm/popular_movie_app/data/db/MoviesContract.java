@@ -18,8 +18,6 @@ public final class MoviesContract {
         throw new AssertionError("No instances.");
     }
 
-
-
     public interface MoviesColumns {
 
         String MOVIE_ID = "movie_id";
