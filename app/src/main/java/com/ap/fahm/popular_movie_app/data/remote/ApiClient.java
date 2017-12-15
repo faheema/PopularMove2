@@ -1,9 +1,7 @@
-package com.ap.fahm.popular_movie_app.data.sync_retrofit;
+package com.ap.fahm.popular_movie_app.data.remote;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-
-import static com.ap.fahm.popular_movie_app.utilities.NetworkUtils.MOVIE_BASE_URL;
 
 /**
  * Created by Faheem on 15/11/17.

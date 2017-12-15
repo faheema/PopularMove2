@@ -1,6 +1,5 @@
-package com.ap.fahm.popular_movie_app.data.sync_retrofit;
+package com.ap.fahm.popular_movie_app.data.remote;
 
-import com.ap.fahm.popular_movie_app.data.model.Movie;
 import com.ap.fahm.popular_movie_app.data.model.Video;
 import com.google.gson.annotations.SerializedName;
 

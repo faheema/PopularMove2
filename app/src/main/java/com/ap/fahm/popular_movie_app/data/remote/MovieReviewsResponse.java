@@ -1,6 +1,5 @@
-package com.ap.fahm.popular_movie_app.data.sync_retrofit;
-
-import com.ap.fahm.popular_movie_app.data.model.Movie;
+package com.ap.fahm.popular_movie_app.data.remote;
+import com.ap.fahm.popular_movie_app.data.model.Review;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -9,15 +8,27 @@ import java.util.List;
  * Created by Faheem on 16/11/17.
  */
 
-public class MoviesResponse {
+public class MovieReviewsResponse {
+
+    @SerializedName("id")
+    private int id;
     @SerializedName("page")
     private int page;
     @SerializedName("results")
-    private List<Movie> results;
+    private List<Review> results;
     @SerializedName("total_results")
     private int totalResults;
     @SerializedName("total_pages")
     private int totalPages;
+
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public int getPage() {
         return page;
@@ -27,11 +38,11 @@ public class MoviesResponse {
         this.page = page;
     }
 
-    public List<Movie> getResults() {
+    public List<Review> getResults() {
         return results;
     }
 
-    public void setResults(List<Movie> results) {
+    public void setResults(List<Review> results) {
         this.results = results;
     }
 

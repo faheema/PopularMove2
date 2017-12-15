@@ -19,9 +19,9 @@ import com.ap.fahm.popular_movie_app.data.db.MoviesContract;
 import com.ap.fahm.popular_movie_app.data.db.MoviesDBHelper;
 import com.ap.fahm.popular_movie_app.data.model.Movie;
 
-import com.ap.fahm.popular_movie_app.data.sync_retrofit.ApiClient;
-import com.ap.fahm.popular_movie_app.data.sync_retrofit.ApiInterface;
-import com.ap.fahm.popular_movie_app.data.sync_retrofit.MoviesResponse;
+import com.ap.fahm.popular_movie_app.data.remote.ApiClient;
+import com.ap.fahm.popular_movie_app.data.remote.ApiInterface;
+import com.ap.fahm.popular_movie_app.data.remote.MoviesResponse;
 import com.ap.fahm.popular_movie_app.ui.adapter.MoviesAdapter;
 import com.ap.fahm.popular_movie_app.utilities.NetworkUtils;
 import java.util.ArrayList;

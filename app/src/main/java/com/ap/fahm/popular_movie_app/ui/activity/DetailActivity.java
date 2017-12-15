@@ -26,26 +26,15 @@ import com.ap.fahm.popular_movie_app.data.db.MoviesDBHelper;
 import com.ap.fahm.popular_movie_app.data.model.Movie;
 import com.ap.fahm.popular_movie_app.data.model.Review;
 import com.ap.fahm.popular_movie_app.data.model.Video;
-import com.ap.fahm.popular_movie_app.data.sync_httpurlconn.IMovieTrailerAsyncCallback;
-import com.ap.fahm.popular_movie_app.data.sync_httpurlconn.IPopularMovieAsuncCallback;
-import com.ap.fahm.popular_movie_app.data.sync_httpurlconn.MovieTrailerAsyncTask;
-import com.ap.fahm.popular_movie_app.data.sync_httpurlconn.PopularMoviesQueryTask;
-import com.ap.fahm.popular_movie_app.data.sync_retrofit.ApiClient;
-import com.ap.fahm.popular_movie_app.data.sync_retrofit.ApiInterface;
-import com.ap.fahm.popular_movie_app.data.sync_retrofit.MovieReviewsResponse;
-import com.ap.fahm.popular_movie_app.data.sync_retrofit.MovieVideosResponse;
-import com.ap.fahm.popular_movie_app.data.sync_retrofit.MoviesResponse;
-import com.ap.fahm.popular_movie_app.ui.adapter.MoviesAdapter;
+import com.ap.fahm.popular_movie_app.data.remote.ApiClient;
+import com.ap.fahm.popular_movie_app.data.remote.ApiInterface;
+import com.ap.fahm.popular_movie_app.data.remote.MovieReviewsResponse;
+import com.ap.fahm.popular_movie_app.data.remote.MovieVideosResponse;
 import com.ap.fahm.popular_movie_app.ui.adapter.ReviewsAdapter;
 import com.ap.fahm.popular_movie_app.ui.adapter.TrailersAdapter;
 import com.ap.fahm.popular_movie_app.ui.listner.OnTrailersItemClickListner;
 import com.ap.fahm.popular_movie_app.utilities.NetworkUtils;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 

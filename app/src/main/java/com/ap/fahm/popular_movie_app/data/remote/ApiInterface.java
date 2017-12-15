@@ -1,4 +1,4 @@
-package com.ap.fahm.popular_movie_app.data.sync_retrofit;
+package com.ap.fahm.popular_movie_app.data.remote;
 
 import retrofit2.http.GET;
 import retrofit2.http.Path;
