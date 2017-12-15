@@ -1,5 +1,5 @@
 # PopularMove2
-#### Project 1 and 2 of Udacity Associate Android Developer done and finished ,This is how it looks
+#### This is my version of Udacity's Popular Movie project. In this project implementing The Movie DB API of popular movies, top rated movies, movie's trailers and reviews. It also has endless scroll on movies list. It is also implementing Model View Presenter (MVP) architecture.This is the combination of Project1 and Project2 I did as a part of Android Nanodegree Program
 #### #no errors
 ![sc][1]
 ![sc][2]
